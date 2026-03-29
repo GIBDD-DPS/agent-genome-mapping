@@ -20,6 +20,6 @@
 - Drift Monitor™ + Genome Ledger™
 
 📄 Full concept: [AGM_Concept_v0.1_DmAndreyanov.txt](./AGM_Concept_v0.1_DmAndreyanov.txt)  
-🔗 Website: prizolov.ru/agm
+🔗 Website: prizolov.ru
 
 © 2026 Dm.Andreyanov. Agent Genome Mapping™ is a trademark of Prizolov Lab.
