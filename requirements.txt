@@ -1,0 +1,5 @@
+# Agent Genome Mapping™ - Dependencies
+# Author: Dm.Andreyanov
+
+pyyaml>=6.0
+numpy>=1.24.0
