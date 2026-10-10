@@ -18,7 +18,7 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 setup(
     # Основная информация
     name="agent-genome-mapping",
-    version="0.1.0",
+    version="0.2.0",
     description="Agent Genome Mapping™ — Evolutionary Architecture for Autonomous AI Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -66,6 +66,10 @@ setup(
     
     # Дополнительные зависимости
     extras_require={
+        # Config Optimizer: fitness через agenomics.AdversarialSuite (Python >= 3.9)
+        "agenomics": [
+            "agenomics>=0.9.6",
+        ],
         "dev": [
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",

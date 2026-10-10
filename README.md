@@ -9,7 +9,7 @@
 
 **Автор**: Dm.Andreyanov  
 **Проект**: Prizolov Market & Lab  
-**Версия**: 0.1.0  
+**Версия**: 0.2.0  
 **Лицензия**: Apache 2.0
 
 ---
@@ -290,6 +290,62 @@ print(f"Уровень: {result.compatibility_level.value}")
 
 ---
 
+### 6. Config Optimizer™ (v0.2): проектирование поверх Agenomics
+
+Модули 1–5 работают с абстрактными генами и формулами. Config Optimizer
+работает с тем, что реально управляет поведением агента: моделью, блоками
+системного промпта, temperature и инструментами. Fitness он не вычисляет
+формулой, а **измеряет** прогонами агента: задачами с проверяемым ответом
+и `AdversarialSuite` из [Agenomics](https://github.com/GIBDD-DPS/agenomics)
+(утечка секретов, prompt injection, согласованность решений).
+
+Это реализация уровня 9 «Evolution / Mutation» из AGENOMICS SPECIFICATION
+во внешнем пакете: ядро Agenomics не меняется.
+
+```bash
+pip install 'agent-genome-mapping[agenomics]'   # Python >= 3.9
+python examples/optimize_config.py               # без ключей API, на имитации агента
+```
+
+```python
+from agm import AgentConfig, ConfigSpace, Task, AgenomicsEvaluator, ConfigOptimizer
+
+space = ConfigSpace(
+    models=["model-small", "model-large"],
+    prompt_blocks={"role": "...", "no_secrets": "...", "ignore_embedded_instructions": "..."},
+    required_blocks=("role",),       # оптимизатор не вправе удалить
+    tools=["order_lookup"],
+)
+dev = AgenomicsEvaluator(my_agent_factory, dev_tasks, agent_id="support-bot")
+holdout = AgenomicsEvaluator(my_agent_factory, holdout_tasks, agent_id="support-bot")
+
+proposal = ConfigOptimizer(space, dev, holdout_evaluator=holdout, max_evaluations=60).run(baseline)
+print(proposal.lineage, proposal.holdout_delta, proposal.improved)
+
+proposal.approve("dima")                                  # решение принимает человек
+proposal.record_to_ledger(genome_ledger, agenomics_genome)  # новая версия в agenomics.GenomeLedger
+```
+
+`my_agent_factory(config)` собирает агента по `AgentConfig` и возвращает
+функцию `prompt -> ответ`. Библиотека сама сетевых запросов не делает.
+
+| Правило | Зачем |
+|---------|-------|
+| Только предложение, без автоприменения | `approve()` требует имя человека; запись в ledger до одобрения запрещена |
+| Улучшение засчитывается только на holdout | прирост на задачах оптимизации ничего не доказывает: под них и подбирали |
+| Задачи holdout не пересекаются с задачами оптимизации | иначе `ValueError` |
+| `required_blocks` не удаляются | жёсткие ограничения нельзя выменять на прирост fitness |
+| Ось без определённых проб = 0 | уклончивый агент не выигрывает у проверенного |
+| Бюджет `max_evaluations` | считаются реальные прогоны агента; каждая конфигурация оценивается один раз |
+
+Прогоны оптимизатора **не** записывайте в `EvidenceStore` Agenomics как
+доказательства: конфигурация подобрана под эти задачи. В Evidence Graph
+должна попадать только одобренная версия, на новых задачах.
+
+**Файл**: `agm/config_optimizer.py`
+
+---
+
 ## 🔹 Примеры использования
 
 ### Полный рабочий процесс
@@ -337,16 +393,15 @@ if report.status == "critical":
 
 ---
 
-## 🔹 Известные ограничения (v0.1.0)
+## 🔹 Известные ограничения (v0.2.0)
 
-| Модуль | Проблема | Статус | План исправления |
-|--------|----------|--------|------------------|
-| Compatibility Matrix™ | Не все конфликты ограничений обнаруживаются | ⚠️ | v0.1.1 |
-| Drift Monitor™ | Минимальный дрейф может не детектироваться | ⚠️ | v0.1.1 |
+| Модуль | Ограничение |
+|--------|-------------|
+| Phenotype Engine™, Compatibility Matrix™ | Формулы с экспертными весами, не проверены на реальных данных. Для измерения используйте Config Optimizer™ + Agenomics |
+| Drift Monitor™ | «Подпись» в журнале это SHA-256 без секретного ключа: защищает от случайной порчи, не от подделки |
+| Config Optimizer™ | На плато (одна мутация не меняет fitness) поиску нужен больший бюджет `max_evaluations` |
 
-**Покрытие тестов**: 19/21 (90%)
-
-Подробности: [KNOWN_ISSUES.md](KNOWN_ISSUES.md)
+Исправлено в v0.2.0: два падавших теста (общие вложенные словари из-за `.copy()`), `DriftMonitor` больше не хранит исходный геном по ссылке, `reset_baseline` больше не рвёт цепочку хешей.
 
 ---
 
@@ -354,9 +409,9 @@ if report.status == "critical":
 
 | Версия | Квартал | План |
 |--------|---------|------|
-| **v0.1.0** | Q2 2026 | ✅ Первый публичный релиз (текущая) |
-| **v0.1.1** | Q2 2026 | 🔜 Исправление известных багов |
-| **v0.2.0** | Q3 2026 | 📋 Интеграция с LangChain, AutoGen, CrewAI |
+| **v0.1.0** | Q2 2026 | ✅ Первый публичный релиз |
+| **v0.2.0** | Q4 2026 | ✅ Config Optimizer™ поверх Agenomics, исправление багов (текущая) |
+| **v0.2.x** | — | 📋 Фабрики агентов для фреймворков из `agenomics/examples/framework_evaluation` |
 | **v0.3.0** | Q4 2026 | 📋 CLI-утилита, расширенная документация |
 | **v1.0.0** | Q1 2027 | 📋 Production release, сертификация AGM-Compliant |
 
@@ -424,6 +479,6 @@ if report.status == "critical":
 
 **Автор**: Dm.Andreyanov  
 **Проект**: Prizolov Market & Lab  
-**Версия**: 0.1.0  
+**Версия**: 0.2.0  
 **Дата обновления**: 2026
 ```
