@@ -22,7 +22,6 @@ classifiers = [
 ]
 dependencies = [
     "pyyaml>=6.0",
-    "numpy>=1.24.0",
 ]
 
 [project.optional-dependencies]
@@ -51,7 +50,7 @@ target-version = ['py38', 'py39', 'py310', 'py311']
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
-addopts = "-v --cov=agm"
+addopts = "-v"
 
 [tool.mypy]
 python_version = "3.8"

@@ -7,6 +7,7 @@ Drift Monitor™ + Genome Ledger™ v1.0
 Методология: Agent Genome Mapping™ (AGM)
 """
 
+import copy
 import hashlib
 import json
 from typing import Dict, List, Any, Optional, Tuple
@@ -157,7 +158,8 @@ class DriftMonitor:
         self.author = "Dm.Andreyanov"
         self.methodology = "Agent Genome Mapping™"
         
-        self.baseline = baseline_genome
+        # Копия: внешние изменения исходного словаря не должны сдвигать точку отсчёта
+        self.baseline = copy.deepcopy(baseline_genome)
         self.agent_id = baseline_genome.get("meta", {}).get("id", "unknown")
         self.enable_blockchain = enable_blockchain_style
         
@@ -624,8 +626,7 @@ class DriftMonitor:
             "new_baseline": new_baseline,
             "reason": "manual_reset"
         })
-        self.baseline = new_baseline
-        self.previous_hash = self._generate_hash("baseline_reset", new_baseline)
+        self.baseline = copy.deepcopy(new_baseline)
 
 
 # ============================================================================
