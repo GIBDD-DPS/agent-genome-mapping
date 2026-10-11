@@ -4,10 +4,10 @@ Evolutionary Architecture for Autonomous AI Systems
 
 Автор: Dm.Andreyanov
 Проект: Prizolov Market & Lab
-Версия: 0.1.0
+Версия: 0.2.0
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Dm.Andreyanov"
 __project__ = "Prizolov Market & Lab"
 
@@ -57,6 +57,16 @@ from .drift_monitor import (
     AlertType
 )
 
+from .config_optimizer import (
+    AgentConfig,
+    ConfigSpace,
+    Task,
+    FitnessReport,
+    AgenomicsEvaluator,
+    ConfigOptimizer,
+    ConfigProposal
+)
+
 # Экспортируем всё для удобного импорта
 __all__ = [
     # Genome Schema™
@@ -97,5 +107,14 @@ __all__ = [
     "DriftAlert",
     "LedgerEntry",
     "DriftSeverity",
-    "AlertType"
+    "AlertType",
+
+    # Config Optimizer™ (слой проектирования поверх Agenomics)
+    "AgentConfig",
+    "ConfigSpace",
+    "Task",
+    "FitnessReport",
+    "AgenomicsEvaluator",
+    "ConfigOptimizer",
+    "ConfigProposal"
 ]

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-genome-mapping"
-version = "0.1.0"
+version = "0.2.0"
 description = "Agent Genome Mapping™ — Evolutionary Architecture for Autonomous AI Systems"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -22,10 +22,13 @@ classifiers = [
 ]
 dependencies = [
     "pyyaml>=6.0",
-    "numpy>=1.24.0",
 ]
 
 [project.optional-dependencies]
+# Config Optimizer: fitness через agenomics.AdversarialSuite (Python >= 3.9)
+agenomics = [
+    "agenomics>=0.9.6",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -51,7 +54,7 @@ target-version = ['py38', 'py39', 'py310', 'py311']
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
-addopts = "-v --cov=agm"
+addopts = "-v"
 
 [tool.mypy]
 python_version = "3.8"

@@ -7,6 +7,7 @@ Unit-тесты для Agent Genome Mapping™ (AGM)
 Методология: Agent Genome Mapping™ (AGM)
 """
 
+import copy
 import unittest
 import sys
 import os
@@ -140,14 +141,14 @@ class TestPhenotypeEngine(unittest.TestCase):
 
     def test_prediction_risk_detection(self):
         """Тест обнаружения рисков"""
-        risky_genome = self.genome.copy()
+        risky_genome = copy.deepcopy(self.genome)
         risky_genome["ethics_genes"]["bias_threshold"] = 0.5
         prediction = self.engine.predict(risky_genome)
         self.assertIn("potential_bias_detected", prediction.risk_flags)
 
     def test_compare_agents(self):
         """Тест сравнения двух агентов"""
-        genome_B = self.genome.copy()
+        genome_B = copy.deepcopy(self.genome)
         genome_B["meta"]["id"] = "test-agent-v2"
         genome_B["cognitive_genes"]["creativity_coefficient"] = 0.3
         
@@ -185,7 +186,7 @@ class TestCompatibilityMatrix(unittest.TestCase):
                 "generation_limit": 50
             }
         }
-        self.genome_B = self.genome_A.copy()
+        self.genome_B = copy.deepcopy(self.genome_A)
         self.genome_B["meta"]["id"] = "agent-B"
         self.matrix = CompatibilityMatrix()
 
@@ -247,9 +248,9 @@ class TestEvolutionarySandbox(unittest.TestCase):
 
     def test_breeding(self):
         """Тест скрещивания"""
-        parent_A = self.genome.copy()
+        parent_A = copy.deepcopy(self.genome)
         parent_A["meta"]["id"] = "parent-A"
-        parent_B = self.genome.copy()
+        parent_B = copy.deepcopy(self.genome)
         parent_B["meta"]["id"] = "parent-B"
         
         result = self.sandbox.breed(parent_A, parent_B)
@@ -265,9 +266,9 @@ class TestEvolutionarySandbox(unittest.TestCase):
 
     def test_ledger_logging(self):
         """Тест журналирования событий"""
-        parent_A = self.genome.copy()
+        parent_A = copy.deepcopy(self.genome)
         parent_A["meta"]["id"] = "parent-A"
-        parent_B = self.genome.copy()
+        parent_B = copy.deepcopy(self.genome)
         parent_B["meta"]["id"] = "parent-B"
         
         self.sandbox.breed(parent_A, parent_B)
@@ -315,7 +316,7 @@ class TestDriftMonitor(unittest.TestCase):
 
     def test_drift_check_changed(self):
         """Тест проверки с изменениями"""
-        drifted = self.baseline.copy()
+        drifted = copy.deepcopy(self.baseline)
         drifted["cognitive_genes"]["creativity_coefficient"] = 0.9
         drifted["ethics_genes"]["bias_threshold"] = 0.3
         
@@ -335,6 +336,21 @@ class TestDriftMonitor(unittest.TestCase):
         summary = self.monitor.get_ledger_summary()
         self.assertGreater(summary["total_entries"], 0)
         self.assertTrue(summary["chain_valid"])
+
+    def test_baseline_is_isolated_from_caller(self):
+        """Изменение исходного словаря снаружи не сдвигает точку отсчёта"""
+        self.baseline["cognitive_genes"]["creativity_coefficient"] = 0.1
+        report = self.monitor.check_drift(self.baseline)
+        self.assertGreater(report.overall_drift_score, 0)
+
+    def test_ledger_valid_after_baseline_reset(self):
+        """Цепочка хешей не рвётся после reset_baseline"""
+        self.monitor.check_drift(self.baseline)
+        new_baseline = copy.deepcopy(self.baseline)
+        new_baseline["cognitive_genes"]["learning_rate"] = 0.5
+        self.monitor.reset_baseline(new_baseline)
+        self.monitor.check_drift(new_baseline)
+        self.assertTrue(self.monitor.verify_ledger_integrity()["valid"])
 
 
 class TestAGMIntegration(unittest.TestCase):
